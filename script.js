@@ -21,5 +21,5 @@ planetImage.addEventListener("click", () => {
     setTimeout(() => {
         planetImage.classList.remove("pop");
         canClick = true;
-    }, 300);
+    }, 40);
 });
