@@ -8,12 +8,12 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: start;
     height: 100vh;
 }
 
 #planetImage {
-    width: 300px; /* Adjust the size as needed */
+    width: 600px; /* Adjust the size as needed */
     height: auto;
     cursor: pointer;
 }
