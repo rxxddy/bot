@@ -16,6 +16,10 @@ body {
     width: 450px; /* Adjust the size as needed */
     height: auto;
     cursor: pointer;
+    transform: scale(1);
+    user-select: none; /* Disable text selection */
+    -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+    outline: none;
 }
 
 #clickCount {
