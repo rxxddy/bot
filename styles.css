@@ -13,7 +13,7 @@ body {
 }
 
 #planetImage {
-    width: 85%; /* Adjust the size as needed */
+    width: 75%; /* Adjust the size as needed */
     max-width: 450px;
     height: auto;
     cursor: pointer;
