@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Planet Clicker Miniapp</title>
     <link rel="stylesheet" href="styles.css"> <!-- Optional: You can style your elements with CSS -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
     <div class="container">
         <img id="planetImage" src="assets/planet.png" alt="Planet Image">
         <p id="clickCount">Clicks: 0</p>
+        <div id="ton-connect"></div>
+        <script>
+            const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://rxxddy.github.io/bot/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect'
+            });
+        </script>
     </div>
 
     <script src="script.js"></script>
