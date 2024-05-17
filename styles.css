@@ -7,13 +7,13 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: start;
+    justify-content: start;
+    align-items: center;
     height: 100vh;
 }
 
 #planetImage {
-    width: 600px; /* Adjust the size as needed */
+    width: 450px; /* Adjust the size as needed */
     height: auto;
     cursor: pointer;
 }
