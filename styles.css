@@ -1,3 +1,9 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -7,7 +13,7 @@
 }
 
 #planetImage {
-    width: 200px; /* Adjust the size as needed */
+    width: 300px; /* Adjust the size as needed */
     height: auto;
     cursor: pointer;
 }
@@ -15,4 +21,5 @@
 #clickCount {
     margin-top: 20px;
     font-size: 18px;
+    font-weight: bold; /* Make font bold */
 }
