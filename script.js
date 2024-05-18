@@ -1,4 +1,3 @@
-// script.js
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
@@ -47,7 +46,7 @@ const getBirdAngle = (flight) => {
 const render = () => {
   index++;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 
@@ -104,18 +103,20 @@ const render = () => {
 setup();
 img.onload = render;
 
+const startGame = () => {
+  if (!gamePlaying) {
+    gamePlaying = true;
+  }
+}
+
+const jumpBird = () => {
+  flight = jump;
+}
+
 // Event listeners for both click and touch
-document.addEventListener('click', () => {
-  if (!gamePlaying) {
-    gamePlaying = true;
-  }
-});
-canvas.addEventListener('touchstart', () => {
-  if (!gamePlaying) {
-    gamePlaying = true;
-  }
-});
+document.addEventListener('click', startGame);
+canvas.addEventListener('touchstart', startGame);
 
 // Jump on click or touch
-window.onclick = () => flight = jump;
-canvas.addEventListener('touchstart', () => flight = jump);
+window.addEventListener('click', jumpBird);
+canvas.addEventListener('touchstart', jumpBird);
