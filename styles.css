@@ -1,3 +1,8 @@
+/* body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+} */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 body {
@@ -6,37 +11,18 @@ body {
   font-family: 'Press Start 2P', cursive;
   user-select: none;
 }
-
 header {
   margin: 0 auto;
-  width: 90%; /* Adjust width to be responsive */
-  max-width: 431px; /* Set maximum width */
+  width: 431px;
 }
-
 h1 {
   background: url("https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png") 0% 340px;
-  padding: 6% 0; /* Adjust padding to be responsive */
+  padding: 1.2rem 0;
   margin: 0;
 }
-
 .score-container {
   display: flex;
   justify-content: space-between;
-  padding: 4% 3%; /* Adjust padding to be responsive */
+  padding: 8px 6px;
   background: #5EE270;
-}
-
-/* Media query for smaller screens */
-@media (max-width: 600px) {
-  header {
-    width: 90%;
-  }
-  
-  h1 {
-    padding: 8% 0;
-  }
-  
-  .score-container {
-    padding: 6% 4%;
-  }
 }
