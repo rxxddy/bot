@@ -82,7 +82,13 @@ const render = () => {
       }
     });
 
-    const birdFrame = Math.floor(index % animationFrames) * size[1];
+    const birdFrame = Math.floor(index % animationFrames) * (size[1] / 2); // Assuming separate up/down frames (half size)
+const isUpwardFlap = index % 2 === 0; // Check for even/odd index for up/down animation
+
+ctx.drawImage(img, 432, isUpwardFlap ? birdFrame : birdFrame + (size[1] / 2), ...size, -size[0] / 2, -size[1] / 2, ...size);
+
+// ... (rest of your rendering logic)
+
     ctx.save();
     ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
     ctx.rotate(getBirdAngle(flight));
