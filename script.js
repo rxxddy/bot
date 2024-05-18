@@ -3,6 +3,22 @@ const ctx = canvas.getContext('2d');
 const img = new Image();
 img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
+// Off-screen canvases for pre-rendering
+const backgroundCanvas = document.createElement('canvas');
+const backgroundCtx = backgroundCanvas.getContext('2d');
+backgroundCanvas.width = canvas.width * 2;
+backgroundCanvas.height = canvas.height;
+
+const birdCanvas = document.createElement('canvas');
+const birdCtx = birdCanvas.getContext('2d');
+birdCanvas.width = size[0];
+birdCanvas.height = size[1];
+
+const pipeCanvas = document.createElement('canvas');
+const pipeCtx = pipeCanvas.getContext('2d');
+pipeCanvas.width = pipeWidth * 2;
+pipeCanvas.height = canvas.height;
+
 // General settings
 let gamePlaying = false;
 const gravity = 0.5;
@@ -42,52 +58,57 @@ const getBirdAngle = (flight) => {
   }
 }
 
+// Pre-render background
 const renderBackground = () => {
-  index++;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width * 2, canvas.height, -(index * (speed / 2)) % (canvas.width * 2), 0, canvas.width * 2, canvas.height);
+  backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+  backgroundCtx.drawImage(img, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
 }
 
-const renderPipes = () => {
-  pipes.forEach(pipe => {
-    pipe[0] -= speed;
-
-    ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
-    ctx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height - pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
-
-    if (pipe[0] <= -pipeWidth) {
-      currentScore++;
-      bestScore = Math.max(bestScore, currentScore);
-      pipes.push([pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]);
-      pipes.shift();
-    }
-
-    if (pipe[0] <= cTenth + size[0] && pipe[0] + pipeWidth >= cTenth && (pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1])) {
-      gamePlaying = false;
-      setup();
-    }
-  });
-}
-
+// Pre-render bird
 const renderBird = () => {
-  ctx.save();
-  ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
-  ctx.rotate(getBirdAngle(flight));
-  ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
-  ctx.restore();
+  birdCtx.clearRect(0, 0, birdCanvas.width, birdCanvas.height);
+  birdCtx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, 0, 0, ...size);
 }
 
-const renderText = () => {
-  ctx.fillText(`Best score : ${bestScore}`, 85, 245);
-  ctx.fillText('Click or Tap to play', 90, 535);
-  ctx.font = "bold 30px courier";
+// Pre-render pipe
+const renderPipe = () => {
+  pipeCtx.clearRect(0, 0, pipeCanvas.width, pipeCanvas.height);
+  pipeCtx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height, 0, 0, pipeWidth, canvas.height);
+  pipeCtx.drawImage(img, 432, 588, pipeWidth, pipeWidth, 0, 0, pipeWidth, pipeWidth);
 }
 
 const render = () => {
+  index++;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  renderBackground();
+  renderPipe();
+
   if (gamePlaying) {
-    renderBackground();
-    renderPipes();
+    pipes.forEach(pipe => {
+      pipe[0] -= speed;
+
+      ctx.drawImage(pipeCanvas, pipe[0], 0);
+
+      if (pipe[0] <= -pipeWidth) {
+        currentScore++;
+        bestScore = Math.max(bestScore, currentScore);
+        pipes.push([pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]);
+        pipes.shift();
+      }
+
+      if (pipe[0] <= cTenth + size[0] && pipe[0] + pipeWidth >= cTenth && (pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1])) {
+        gamePlaying = false;
+        setup();
+      }
+    });
+
     renderBird();
+    ctx.save();
+    ctx.translate(cTenth, flyHeight);
+    ctx.rotate(getBirdAngle(flight));
+    ctx.drawImage(birdCanvas, -size[0] / 2, -size[1] / 2);
+    ctx.restore();
 
     flight += gravity;
     flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
@@ -97,9 +118,10 @@ const render = () => {
       setup();
     }
   } else {
-    renderBackground();
-    renderBird();
-    renderText();
+    ctx.drawImage(birdCanvas, (canvas.width - size[0]) / 2, flyHeight);
+    ctx.fillText(`Best score : ${bestScore}`, 85, 245);
+    ctx.fillText('Click or Tap to play', 90, 535);
+    ctx.font = "bold 30px courier";
   }
 
   document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
@@ -109,7 +131,12 @@ const render = () => {
 }
 
 setup();
-img.onload = render;
+img.onload = () => {
+  renderBackground();
+  renderBird();
+  renderPipe();
+  render();
+};
 
 // Event listeners for both click and touch
 document.addEventListener('click', () => {
