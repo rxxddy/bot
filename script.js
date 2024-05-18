@@ -1,15 +1,13 @@
 // script.js
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 215; // Adjusted width
-canvas.height = 384;
 const img = new Image();
 img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
 const gravity = 0.5;  // Adjusted gravity
-const speed = 4;      // Adjusted speed
+const speed = 12;      // Adjusted speed
 const size = [51, 36];
 const jump = -10;      // Adjusted jump power
 const cTenth = (canvas.width / 10);
