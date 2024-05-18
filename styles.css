@@ -30,7 +30,8 @@ canvas {
     display: block;
     margin: 0 auto;
     background-color: #4ec0ca;
-    width: 100%;
+    width: 100%; /* Set to full width */
     height: auto;
     max-width: 431px; /* Limiting the max width to 431px */
+    image-rendering: pixelated; /* For pixel-perfect rendering */
 }

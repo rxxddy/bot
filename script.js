@@ -1,6 +1,8 @@
 // script.js
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+canvas.width = 215; // Adjusted width
+canvas.height = 384;
 const img = new Image();
 img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
@@ -22,6 +24,7 @@ let index = 0,
 // Pipe settings
 const pipeWidth = 78;
 const pipeGap = 220;
+
 const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
 
 const setup = () => {
