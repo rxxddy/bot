@@ -1,4 +1,3 @@
-// script.js
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
@@ -18,6 +17,11 @@ let index = 0,
     flyHeight, 
     currentScore, 
     pipes;
+
+// Performance metrics
+let lastRender = performance.now();
+let frameCount = 0;
+let fps = 0;
 
 // Pipe settings
 const pipeWidth = 78;
@@ -96,6 +100,21 @@ const render = () => {
     ctx.fillText('Click or Tap to play', 90, 535);
     ctx.font = "bold 30px courier";
   }
+
+  // Calculate FPS
+  const now = performance.now();
+  const deltaTime = now - lastRender;
+  lastRender = now;
+  frameCount++;
+  if (deltaTime >= 1000) {
+    fps = Math.round((frameCount * 1000) / deltaTime);
+    frameCount = 0;
+  }
+
+  // Display FPS
+  ctx.fillStyle = 'white';
+  ctx.font = '20px Arial';
+  ctx.fillText(`FPS: ${fps}`, 10, 20);
 
   document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
   document.getElementById('currentScore').innerHTML = `Current : ${currentScore}`;
