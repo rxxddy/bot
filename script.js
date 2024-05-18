@@ -3,22 +3,6 @@ const ctx = canvas.getContext('2d');
 const img = new Image();
 img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
-// Off-screen canvases for pre-rendering
-const backgroundCanvas = document.createElement('canvas');
-const backgroundCtx = backgroundCanvas.getContext('2d');
-backgroundCanvas.width = canvas.width * 2;
-backgroundCanvas.height = canvas.height;
-
-const birdCanvas = document.createElement('canvas');
-const birdCtx = birdCanvas.getContext('2d');
-birdCanvas.width = size[0];
-birdCanvas.height = size[1];
-
-const pipeCanvas = document.createElement('canvas');
-const pipeCtx = pipeCanvas.getContext('2d');
-pipeCanvas.width = pipeWidth * 2;
-pipeCanvas.height = canvas.height;
-
 // General settings
 let gamePlaying = false;
 const gravity = 0.5;
@@ -58,87 +42,79 @@ const getBirdAngle = (flight) => {
   }
 }
 
-// Pre-render background
-const renderBackground = () => {
-  backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-  backgroundCtx.drawImage(img, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
-}
-
-// Pre-render bird
-const renderBird = () => {
-  birdCtx.clearRect(0, 0, birdCanvas.width, birdCanvas.height);
-  birdCtx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, 0, 0, ...size);
-}
-
-// Pre-render pipe
-const renderPipe = () => {
-  pipeCtx.clearRect(0, 0, pipeCanvas.width, pipeCanvas.height);
-  pipeCtx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height, 0, 0, pipeWidth, canvas.height);
-  pipeCtx.drawImage(img, 432, 588, pipeWidth, pipeWidth, 0, 0, pipeWidth, pipeWidth);
-}
-
 const render = () => {
   index++;
+
+  // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  renderBackground();
-  renderPipe();
+  // Draw background
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width + canvas.width, 0, canvas.width, canvas.height);
 
   if (gamePlaying) {
+    // Move and draw pipes
     pipes.forEach(pipe => {
       pipe[0] -= speed;
 
-      ctx.drawImage(pipeCanvas, pipe[0], 0);
+      // Top pipe
+      ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
+      // Bottom pipe
+      ctx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height - pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
 
-      if (pipe[0] <= -pipeWidth) {
-        currentScore++;
-        bestScore = Math.max(bestScore, currentScore);
-        pipes.push([pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]);
-        pipes.shift();
-      }
-
+      // Check for collision
       if (pipe[0] <= cTenth + size[0] && pipe[0] + pipeWidth >= cTenth && (pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1])) {
         gamePlaying = false;
         setup();
       }
+
+      // Score points
+      if (pipe[0] + pipeWidth <= cTenth && !pipe.passed) {
+        currentScore++;
+        bestScore = Math.max(bestScore, currentScore);
+        pipe.passed = true;
+      }
     });
 
-    renderBird();
+    // Draw bird
     ctx.save();
-    ctx.translate(cTenth, flyHeight);
+    ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
     ctx.rotate(getBirdAngle(flight));
-    ctx.drawImage(birdCanvas, -size[0] / 2, -size[1] / 2);
+    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
     ctx.restore();
 
+    // Update bird's position
     flight += gravity;
     flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
 
+    // Check for ground collision
     if (flyHeight >= canvas.height - size[1]) {
       gamePlaying = false;
       setup();
     }
   } else {
-    ctx.drawImage(birdCanvas, (canvas.width - size[0]) / 2, flyHeight);
+    // Draw bird on the ground
+    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
+
+    // Display scores and instructions
     ctx.fillText(`Best score : ${bestScore}`, 85, 245);
     ctx.fillText('Click or Tap to play', 90, 535);
     ctx.font = "bold 30px courier";
   }
 
+  // Update scores
   document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
   document.getElementById('currentScore').innerHTML = `Current : ${currentScore}`;
 
+  // Request next frame
   window.requestAnimationFrame(render);
 }
 
+// Initialize game
 setup();
-img.onload = () => {
-  renderBackground();
-  renderBird();
-  renderPipe();
-  render();
-};
+img.onload = render;
 
-// Event listeners for both click and touch
+// Event listeners for starting the game
 document.addEventListener('click', () => {
   if (!gamePlaying) {
     gamePlaying = true;
