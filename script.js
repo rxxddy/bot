@@ -6,11 +6,18 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 0.5;
-const speed = 4;
+let gravity = 0.5;
+let speed = 4;
 const size = [51, 36];
-const jump = -10;
+let jump = -10;
 const cTenth = (canvas.width / 10);
+
+// Adjust settings for mobile
+if (/Mobi|Android/i.test(navigator.userAgent)) {
+  gravity = 0.8;
+  speed = 6;
+  jump = -12;
+}
 
 let index = 0,
     bestScore = 0, 
@@ -32,9 +39,8 @@ const setup = () => {
 }
 
 const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;  // 30 degrees in radians
-  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians
-
+  const upAngle = 30 * Math.PI / 180;
+  const downAngle = 100 * Math.PI / 180;
   if (flight < 0) {
     return Math.max(-upAngle, flight / 10);
   } else {
@@ -42,8 +48,10 @@ const getBirdAngle = (flight) => {
   }
 }
 
-const render = (time) => {
+const render = () => {
   index++;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
@@ -101,7 +109,6 @@ const render = (time) => {
 setup();
 img.onload = render;
 
-// Combined event listeners for click and touch
 const startGame = () => {
   if (!gamePlaying) {
     gamePlaying = true;
