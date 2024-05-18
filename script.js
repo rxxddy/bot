@@ -6,7 +6,7 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 // General settings
 let gamePlaying = false;
 const gravity = 0.5;
-const speed = 12;
+const speed = 4;
 const size = [51, 36];
 const jump = -10;
 const cTenth = (canvas.width / 10);
@@ -46,7 +46,10 @@ const getBirdAngle = (flight) => {
 const render = () => {
   index++;
 
+  // Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the background image
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 
