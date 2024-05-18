@@ -1,115 +1,146 @@
-// script.js
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const img = new Image();
-img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
 
-// Game settings
-const GRAVITY = 0.5;
-const BIRD_SIZE = [51, 36];
-const JUMP = -8;
-const PIPE_WIDTH = 78;
-const PIPE_GAP = 200;
-const SPEED = 4;
+  const birdImage = new Image();
+  birdImage.src = 'assets/plane.png';
 
-let gamePlaying = false;
-let flight, flyHeight, pipes, currentScore, bestScore = 0;
-let index = 0;
+  const obstacleImage = new Image();
+  obstacleImage.src = 'assets/mount.png';
 
-// Initialize game settings
-const setup = () => {
-    currentScore = 0;
-    flight = JUMP;
-    flyHeight = (canvas.height / 2) - (BIRD_SIZE[1] / 2);
-    pipes = Array(3).fill().map((_, i) => [canvas.width + (i * (PIPE_GAP + PIPE_WIDTH)), pipeLoc()]);
-}
+  const bird = {
+      x: 50,
+      y: 150,
+      width: 40, // Adjust to match your image dimensions
+      height: 30, // Adjust to match your image dimensions
+      gravity: 0.7,
+      lift: -10,
+      velocity: 0
+  };
 
-// Random pipe location
-const pipeLoc = () => Math.random() * ((canvas.height - (PIPE_GAP + PIPE_WIDTH)) - PIPE_WIDTH) + PIPE_WIDTH;
+  const obstacles = [];
+  const obstacleWidth = 100; // Adjust to make mountains wider
+  const obstacleGap = 150;
+  let frameCount = 0;
+  let score = 0;
+  let bestScore = localStorage.getItem('bestScore') || 0;
+  let isRunning = false;
+  let gameStarted = false;
 
-const render = () => {
-    index++;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function drawBird() {
+      ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
+  }
 
-    // Draw background
-    ctx.fillStyle = '#70c5ce';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function updateBird() {
+      bird.velocity += bird.gravity;
+      bird.y += bird.velocity;
 
-    // Draw pipes
-    if (gamePlaying) {
-        pipes.forEach(pipe => {
-            pipe[0] -= SPEED;
+      if (bird.y + bird.height > canvas.height || bird.y < 0) {
+          isRunning = false;
+      }
+  }
 
-            // Top pipe
-            ctx.drawImage(img, 432, 588 - pipe[1], PIPE_WIDTH, pipe[1], pipe[0], 0, PIPE_WIDTH, pipe[1]);
-            // Bottom pipe
-            ctx.drawImage(img, 432 + PIPE_WIDTH, 108, PIPE_WIDTH, canvas.height - pipe[1] + PIPE_GAP, pipe[0], pipe[1] + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe[1] + PIPE_GAP);
+  function createObstacle() {
+      const height = Math.random() * (canvas.height - obstacleGap - 50) + 50;
+      obstacles.push({
+          x: canvas.width,
+          topHeight: height,
+          bottomHeight: canvas.height - height - obstacleGap
+      });
+  }
 
-            if (pipe[0] <= -PIPE_WIDTH) {
-                currentScore++;
-                bestScore = Math.max(bestScore, currentScore);
-                pipes = [...pipes.slice(1), [pipes[pipes.length - 1][0] + PIPE_GAP + PIPE_WIDTH, pipeLoc()]];
-            }
+  function drawObstacles() {
+      obstacles.forEach(obstacle => {
+          // Draw the top mountain (flipped)
+          ctx.save();
+          ctx.translate(obstacle.x + obstacleWidth / 2, obstacle.topHeight / 2);
+          ctx.scale(1, -1);
+          ctx.drawImage(obstacleImage, -obstacleWidth / 2, -obstacle.topHeight / 2, obstacleWidth, obstacle.topHeight);
+          ctx.restore();
 
-            // Collision detection
-            const birdHitPipe = pipe[0] <= cTenth + BIRD_SIZE[0] &&
-                                pipe[0] + PIPE_WIDTH >= cTenth &&
-                                (pipe[1] > flyHeight || pipe[1] + PIPE_GAP < flyHeight + BIRD_SIZE[1]);
-            if (birdHitPipe) {
-                gamePlaying = false;
-                setup();
-            }
-        });
-        
-        // Draw bird
-        ctx.save();
-        ctx.translate(cTenth + BIRD_SIZE[0] / 2, flyHeight + BIRD_SIZE[1] / 2);
-        ctx.rotate(getBirdAngle(flight));
-        ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * BIRD_SIZE[1], ...BIRD_SIZE, -BIRD_SIZE[0] / 2, -BIRD_SIZE[1] / 2, ...BIRD_SIZE);
-        ctx.restore();
+          // Draw the bottom mountain
+          ctx.drawImage(obstacleImage, obstacle.x, canvas.height - obstacle.bottomHeight, obstacleWidth, obstacle.bottomHeight);
+      });
+  }
 
-        flight += GRAVITY;
-        flyHeight = Math.min(flyHeight + flight, canvas.height - BIRD_SIZE[1]);
+  function updateObstacles() {
+      obstacles.forEach(obstacle => {
+          obstacle.x -= 2;
 
-        if (flyHeight >= canvas.height - BIRD_SIZE[1]) {
-            gamePlaying = false;
-            setup();
-        }
-    } else {
-        // Bird at rest
-        ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * BIRD_SIZE[1], ...BIRD_SIZE, (canvas.width / 2) - (BIRD_SIZE[0] / 2), flyHeight, ...BIRD_SIZE);
-    }
+          if (obstacle.x + obstacleWidth < 0) {
+              obstacles.shift();
+              score++;
+              if (score > bestScore) {
+                  bestScore = score;
+                  localStorage.setItem('bestScore', bestScore);
+              }
+          }
 
-    window.requestAnimationFrame(render);
-}
+          // Check collision with top mountain (approximated with bounding boxes)
+          if (bird.x < obstacle.x + obstacleWidth && bird.x + bird.width > obstacle.x) {
+              if (bird.y < obstacle.topHeight * 0.75 || bird.y + bird.height > canvas.height - obstacle.bottomHeight * 0.75) {
+                  isRunning = false;
+              }
+          }
+      });
 
-const startGame = () => {
-    if (!gamePlaying) {
-        gamePlaying = true;
-        flight = JUMP;
-    }
-};
+      if (frameCount % 90 === 0) {
+          createObstacle();
+      }
+  }
 
-document.addEventListener('click', startGame);
-canvas.addEventListener('touchstart', startGame);
+  function resetGame() {
+      bird.y = 150;
+      bird.velocity = 0;
+      obstacles.length = 0;
+      score = 0;
+      frameCount = 0;
+      isRunning = true;
+      gameStarted = true;
+  }
 
-window.onclick = () => flight = JUMP;
-canvas.addEventListener('touchstart', () => flight = JUMP);
+  function drawScore() {
+      document.getElementById('currentScore').innerText = `Score: ${score}`;
+      document.getElementById('bestScore').innerText = `Best: ${bestScore}`;
+  }
 
-const updateScore = () => {
-    document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
-    document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
-}
+  function drawStartScreen() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.font = '30px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tap to Start', canvas.width / 2, canvas.height / 2);
+  }
 
-setup();
-img.onload = render;
-setInterval(updateScore, 100);
+  function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-const cTenth = (canvas.width / 10);
+      if (isRunning) {
+          updateBird();
+          updateObstacles();
+          drawBird();
+          drawObstacles();
+          drawScore();
+          frameCount++;
+      } else if (!gameStarted) {
+          drawStartScreen();
+      } else {
+          drawStartScreen();
+      }
 
-const getBirdAngle = (flight) => {
-    const UP_ANGLE = 30 * Math.PI / 180;
-    const DOWN_ANGLE = 100 * Math.PI / 180;
+      requestAnimationFrame(gameLoop);
+  }
 
-    return flight < 0 ? Math.max(-UP_ANGLE, flight / 15) : Math.min(DOWN_ANGLE, flight / 20);
-}
+  document.addEventListener('click', function() {
+      if (!gameStarted) {
+          resetGame();
+      } else if (isRunning) {
+          bird.velocity = bird.lift;
+      } else {
+          resetGame();
+      }
+  });
+
+  gameLoop();
+});
