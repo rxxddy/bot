@@ -6,7 +6,7 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 1; // Adjusted gravity for smoother motion
+const gravity = 2; // Adjusted gravity for smoother motion
 const size = [51, 36];
 const jump = -9;
 const cTenth = (canvas.width / 10);
