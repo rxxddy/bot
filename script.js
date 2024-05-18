@@ -1,14 +1,14 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
-img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
+img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png"; // Replace with your optimized image
 
 // General settings
 let gamePlaying = false;
-const gravity = 0.6; // Increased gravity
-const speed = 6; // Increased speed
+const gravity = 0.5;
+const speed = 4;
 const size = [51, 36];
-const jump = -12; // Increased jump
+const jump = -10;
 const cTenth = (canvas.width / 10);
 
 let index = 0,
@@ -18,9 +18,11 @@ let index = 0,
     currentScore, 
     pipes;
 
+const animationFrames = 3; // Assuming 3 flapping frames in the sprite sheet
+
 // Pipe settings
 const pipeWidth = 78;
-const pipeGap = 270; // Increased pipeGap
+const pipeGap = 220;
 const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
 
 const setup = () => {
@@ -43,12 +45,19 @@ const getBirdAngle = (flight) => {
   }
 }
 
+// Consider using an off-screen canvas for background optimization (commented out)
+// const offscreenCanvas = document.createElement('canvas');
+// offscreenCanvas.width = canvas.width;
+// offscreenCanvas.height = canvas.height;
+// const offscreenCtx = offscreenCanvas.getContext('2d');
+
 const render = () => {
   index++;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
+
+  // Draw pre-rendered background (if using off-screen canvas)
+  // ctx.drawImage(offscreenCanvas, 0, 0);
 
   if (gamePlaying) {
     pipes.forEach(pipe => {
@@ -73,10 +82,11 @@ const render = () => {
       }
     });
 
+    const birdFrame = Math.floor(index % animationFrames) * size[1];
     ctx.save();
     ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
     ctx.rotate(getBirdAngle(flight));
-    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
+    ctx.drawImage(img, 432, birdFrame, ...size, -size[0] / 2, -size[1] / 2, ...size);
     ctx.restore();
 
     flight += gravity;
