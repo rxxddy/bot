@@ -5,127 +5,85 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 0.5;
-const speed = 4;
-const size = [51, 36];
-const jump = -10;
-const cTenth = (canvas.width / 10);
+let flyHeight;
+let currentScore;
+let pipeX;
+let pipeGapY;
 
-let index = 0,
-    bestScore = 0, 
-    flight, 
-    flyHeight, 
-    currentScore, 
-    pipes;
+// Bird settings
+const birdWidth = 34;
+const birdHeight = 24;
+const birdY = canvas.height / 2 - birdHeight / 2;
+const gravity = 0.5;
+let birdYVelocity = 0;
 
 // Pipe settings
-const pipeWidth = 78;
-const pipeGap = 220;
+const pipeWidth = 52;
+const pipeHeight = 320;
+const pipeGap = 140;
 
-const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
-
-const setup = () => {
-  currentScore = 0;
-  flight = jump;
-  flyHeight = (canvas.height / 2) - (size[1] / 2);
-  pipes = Array(3).fill().map((a, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
-}
-
-const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;
-  const downAngle = 100 * Math.PI / 180;
-
-  if (flight < 0) {
-    return Math.max(-upAngle, flight / 10);
-  } else {
-    return Math.min(downAngle, flight / 20);
-  }
-}
-
-const render = () => {
-  index++;
-
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw background
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width + canvas.width, 0, canvas.width, canvas.height);
-
-  if (gamePlaying) {
-    // Move and draw pipes
-    pipes.forEach(pipe => {
-      pipe[0] -= speed;
-
-      // Top pipe
-      ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
-      // Bottom pipe
-      ctx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height - pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
-
-      // Check for collision
-      if (pipe[0] <= cTenth + size[0] && pipe[0] + pipeWidth >= cTenth && (pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1])) {
-        gamePlaying = false;
-        setup();
-      }
-
-      // Score points
-      if (pipe[0] + pipeWidth <= cTenth && !pipe.passed) {
-        currentScore++;
-        bestScore = Math.max(bestScore, currentScore);
-        pipe.passed = true;
-      }
-    });
-
-    // Draw bird
-    ctx.save();
-    ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
-    ctx.rotate(getBirdAngle(flight));
-    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
-    ctx.restore();
-
-    // Update bird's position
-    flight += gravity;
-    flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
-
-    // Check for ground collision
-    if (flyHeight >= canvas.height - size[1]) {
-      gamePlaying = false;
-      setup();
-    }
-  } else {
-    // Draw bird on the ground
-    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
-
-    // Display scores and instructions
-    ctx.fillText(`Best score : ${bestScore}`, 85, 245);
-    ctx.fillText('Click or Tap to play', 90, 535);
-    ctx.font = "bold 30px courier";
-  }
-
-  // Update scores
-  document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
-  document.getElementById('currentScore').innerHTML = `Current : ${currentScore}`;
-
-  // Request next frame
-  window.requestAnimationFrame(render);
-}
-
-// Initialize game
-setup();
-img.onload = render;
-
-// Event listeners for starting the game
+// Event listeners for both click and touch to start the game
 document.addEventListener('click', () => {
   if (!gamePlaying) {
-    gamePlaying = true;
+    startGame();
   }
 });
 canvas.addEventListener('touchstart', () => {
   if (!gamePlaying) {
-    gamePlaying = true;
+    startGame();
   }
 });
 
-// Jump on click or touch
-window.onclick = () => flight = jump;
-canvas.addEventListener('touchstart', () => flight = jump);
+// Function to start the game
+function startGame() {
+  gamePlaying = true;
+  flyHeight = canvas.height / 2;
+  currentScore = 0;
+  birdYVelocity = 0;
+  pipeX = canvas.width;
+  pipeGapY = Math.random() * (canvas.height - pipeGap);
+  requestAnimationFrame(render);
+}
+
+// Main game loop
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw background
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  if (gamePlaying) {
+    // Update bird position
+    birdYVelocity += gravity;
+    flyHeight += birdYVelocity;
+
+    // Draw bird
+    ctx.drawImage(img, 0, 0, birdWidth, birdHeight, 80, flyHeight, birdWidth, birdHeight);
+
+    // Draw pipes
+    pipeX -= 2;
+    ctx.drawImage(img, 56, 323, pipeWidth, pipeHeight, pipeX, 0, pipeWidth, pipeHeight);
+    ctx.drawImage(img, 0, 323, pipeWidth, pipeHeight, pipeX, pipeGapY + pipeGap, pipeWidth, pipeHeight);
+
+    // Check collision
+    if (pipeX < 116 && pipeX + pipeWidth > 80 && (flyHeight < pipeGapY || flyHeight + birdHeight > pipeGapY + pipeGap)) {
+      endGame();
+    }
+
+    // Score update
+    if (pipeX + pipeWidth < 80) {
+      currentScore++;
+      pipeX = canvas.width;
+      pipeGapY = Math.random() * (canvas.height - pipeGap);
+    }
+
+    // Request next frame
+    requestAnimationFrame(render);
+  }
+}
+
+// End the game
+function endGame() {
+  gamePlaying = false;
+  // Handle game over logic here
+}
