@@ -6,9 +6,9 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 2; // Adjusted gravity for smoother motion
+let gravity = 1; // Adjusted gravity
 const size = [51, 36];
-const jump = -9;
+const jump = -10;
 const cTenth = (canvas.width / 10);
 
 let index = 0,
@@ -26,12 +26,6 @@ const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) 
 // Detect if the user is on a mobile device
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const speed = isMobile ? 10 : 4; // Increased speed on mobile
-
-// Offscreen canvas for background
-const offCanvas = document.createElement('canvas');
-offCanvas.width = canvas.width;
-offCanvas.height = canvas.height;
-const offCtx = offCanvas.getContext('2d');
 
 const setup = () => {
   currentScore = 0;
@@ -51,16 +45,24 @@ const getBirdAngle = (flight) => {
   }
 }
 
-// Pre-draw the background onto an offscreen canvas
-const drawBackground = () => {
-  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+// Offscreen canvas for background
+const offCanvas = document.createElement('canvas');
+offCanvas.width = canvas.width;
+offCanvas.height = canvas.height;
+const offCtx = offCanvas.getContext('2d');
+
+const renderBackground = () => {
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 }
 
 const render = () => {
   index++;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-  ctx.drawImage(offCanvas, -((index * (speed / 2)) % canvas.width), 0); // Draw the pre-drawn background
+  // Draw background from offscreen canvas
+  renderBackground();
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas once before drawing
+  ctx.drawImage(offCanvas, 0, 0);
 
   if (gamePlaying) {
     pipes.forEach(pipe => {
@@ -91,7 +93,7 @@ const render = () => {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
     ctx.restore();
 
-    flight += gravity;
+    flight += gravity; // Apply gravity
     flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
 
     if (flyHeight >= canvas.height - size[1]) {
@@ -106,10 +108,7 @@ const render = () => {
 }
 
 setup();
-img.onload = () => {
-  drawBackground(); // Draw the background once it's loaded
-  render(); // Start the game loop after everything is set up
-};
+img.onload = render;
 
 const startGame = () => {
   if (!gamePlaying) {
@@ -119,7 +118,11 @@ const startGame = () => {
 };
 
 document.addEventListener('click', startGame);
-canvas.addEventListener('touchstart', startGame); // Listen for touch events to start the game
+canvas.addEventListener('touchstart', startGame); // Changed back to 'touchstart'
+
+// Jump on click or touch
+window.onclick = () => flight = jump;
+canvas.addEventListener('touchstart', () => flight = jump); // Changed back to 'touchstart'
 
 // Update score using HTML/CSS instead of canvas
 const updateScore = () => {
@@ -127,13 +130,5 @@ const updateScore = () => {
   document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
 }
 
-// Update scores only when they change
-let lastBestScore = -1;
-let lastCurrentScore = -1;
-setInterval(() => {
-  if (bestScore !== lastBestScore || currentScore !== lastCurrentScore) {
-    updateScore();
-    lastBestScore = bestScore;
-    lastCurrentScore = currentScore;
-  }
-}, 100);
+// Update scores regularly to reflect changes
+setInterval(updateScore, 100);
