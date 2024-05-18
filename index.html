@@ -8,18 +8,28 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <!-- <div class="container">
         <img id="planetImage" src="assets/planet.png" alt="Planet Image">
         <p id="clickCount">Clicks: 0</p>
         <div id="ton-connect"></div>
-        <script>
-            const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                manifestUrl: 'https://rxxddy.github.io/bot/tonconnect-manifest.json',
-                buttonRootId: 'ton-connect'
-            });
-        </script>
-    </div>
+    </div> -->
+    <header>
+        <h1>Floppy Bird</h1>
+        <div class="score-container">
+          <div id="bestScore"></div>
+          <div id="currentScore"></div>
+        </div>
+      </header>
+    
+      <canvas id="canvas" width="431" height="768"></canvas>
 
+      
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://rxxddy.github.io/bot/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
