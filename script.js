@@ -101,14 +101,7 @@ const render = () => {
     }
   } else {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
-
-    ctx.fillText(`Best score : ${bestScore}`, 85, 245);
-    ctx.fillText('Click or Tap to play', 90, 535);
-    ctx.font = "bold 30px courier";
   }
-
-  document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
-  document.getElementById('currentScore').innerHTML = `Current : ${currentScore}`;
 
   window.requestAnimationFrame(render);
 }
@@ -126,3 +119,12 @@ const startGame = () => {
 // Combined event listeners for click and touch
 document.addEventListener('click', startGame);
 canvas.addEventListener('touchstart', startGame);
+
+// Update score using HTML/CSS instead of canvas
+const updateScore = () => {
+  document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
+  document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
+}
+
+// Update scores regularly to reflect changes
+setInterval(updateScore, 100);
