@@ -5,130 +5,114 @@ const img = new Image();
 img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
+const GRAVITY = 0.7;
+const BIRD_SIZE = [51, 36];
+const JUMP = -12;
+const CANVAS_TENTH = (canvas.width / 10);
+const PIPE_WIDTH = 78;
+const PIPE_GAP = 220;
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const SPEED = 5;
+
 let gamePlaying = false;
-let gravity = 1; // Adjusted gravity
-const size = [51, 36];
-const jump = -12;
-const cTenth = (canvas.width / 10);
+let index = 0;
+let bestScore = 0;
+let flight, flyHeight, currentScore, pipes;
 
-let index = 0,
-    bestScore = 0,
-    flight,
-    flyHeight,
-    currentScore,
-    pipes;
-
-// Pipe settings
-const pipeWidth = 78;
-const pipeGap = 220;
-const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
-
-// Detect if the user is on a mobile device
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const speed = isMobile ? 8 : 4; // Increased speed on mobile
+const pipeLoc = () => Math.random() * ((canvas.height - (PIPE_GAP + PIPE_WIDTH)) - PIPE_WIDTH) + PIPE_WIDTH;
 
 const setup = () => {
   currentScore = 0;
-  flight = jump;
-  flyHeight = (canvas.height / 2) - (size[1] / 2);
-  pipes = Array(3).fill().map((_, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
+  flight = JUMP;
+  flyHeight = (canvas.height / 2) - (BIRD_SIZE[1] / 2);
+  pipes = Array(3).fill().map((_, i) => [canvas.width + (i * (PIPE_GAP + PIPE_WIDTH)), pipeLoc()]);
 }
 
 const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;  // 30 degrees in radians
-  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians
+  const UP_ANGLE = 30 * Math.PI / 180;
+  const DOWN_ANGLE = 100 * Math.PI / 180;
 
-  if (flight < 0) {
-    return Math.max(-upAngle, flight / 15); // Adjusted flight angle for smoother rotation
-  } else {
-    return Math.min(downAngle, flight / 20);
-  }
+  return flight < 0 ? Math.max(-UP_ANGLE, flight / 15) : Math.min(DOWN_ANGLE, flight / 20);
 }
 
-// Offscreen canvas for background
 const offCanvas = document.createElement('canvas');
 offCanvas.width = canvas.width;
 offCanvas.height = canvas.height;
 const offCtx = offCanvas.getContext('2d');
 
 const renderBackground = () => {
-  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
-  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
+  const backgroundX = -((index * (SPEED / 2)) % canvas.width);
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, backgroundX, 0, canvas.width, canvas.height);
 }
 
 const render = () => {
   index++;
-
-  // Draw background from offscreen canvas
   renderBackground();
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas once before drawing
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(offCanvas, 0, 0);
 
   if (gamePlaying) {
     pipes.forEach(pipe => {
-      pipe[0] -= speed;
+      pipe[0] -= SPEED;
 
-      ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
-      ctx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height - pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
+      ctx.drawImage(img, 432, 588 - pipe[1], PIPE_WIDTH, pipe[1], pipe[0], 0, PIPE_WIDTH, pipe[1]);
+      ctx.drawImage(img, 432 + PIPE_WIDTH, 108, PIPE_WIDTH, canvas.height - pipe[1] + PIPE_GAP, pipe[0], pipe[1] + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe[1] + PIPE_GAP);
 
-      if (pipe[0] <= -pipeWidth) {
+      if (pipe[0] <= -PIPE_WIDTH) {
         currentScore++;
         bestScore = Math.max(bestScore, currentScore);
-        pipes = [...pipes.slice(1), [pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]];
+        pipes.push([pipes[pipes.length - 1][0] + PIPE_GAP + PIPE_WIDTH, pipeLoc()]);
+        pipes.shift();
       }
 
-      if ([
-        pipe[0] <= cTenth + size[0],
-        pipe[0] + pipeWidth >= cTenth,
-        pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1]
-      ].every(Boolean)) {
+      const birdHitPipe = pipe[0] <= CANVAS_TENTH + BIRD_SIZE[0] &&
+                          pipe[0] + PIPE_WIDTH >= CANVAS_TENTH &&
+                          (pipe[1] > flyHeight || pipe[1] + PIPE_GAP < flyHeight + BIRD_SIZE[1]);
+      if (birdHitPipe) {
         gamePlaying = false;
         setup();
       }
     });
 
     ctx.save();
-    ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
+    ctx.translate(CANVAS_TENTH + BIRD_SIZE[0] / 2, flyHeight + BIRD_SIZE[1] / 2);
     ctx.rotate(getBirdAngle(flight));
-    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
+    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * BIRD_SIZE[1], ...BIRD_SIZE, -BIRD_SIZE[0] / 2, -BIRD_SIZE[1] / 2, ...BIRD_SIZE);
     ctx.restore();
 
-    flight += gravity; // Apply gravity
-    flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
+    flight += GRAVITY;
+    flyHeight = Math.min(flyHeight + flight, canvas.height - BIRD_SIZE[1]);
 
-    if (flyHeight >= canvas.height - size[1]) {
+    if (flyHeight >= canvas.height - BIRD_SIZE[1]) {
       gamePlaying = false;
       setup();
     }
   } else {
-    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
+    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * BIRD_SIZE[1], ...BIRD_SIZE, (canvas.width / 2) - (BIRD_SIZE[0] / 2), flyHeight, ...BIRD_SIZE);
   }
 
   window.requestAnimationFrame(render);
 }
 
-setup();
-img.onload = render;
-
 const startGame = () => {
   if (!gamePlaying) {
     gamePlaying = true;
-    flight = jump;
+    flight = JUMP;
   }
 };
 
 document.addEventListener('click', startGame);
-canvas.addEventListener('touchstart', startGame); // Changed back to 'touchstart'
+canvas.addEventListener('touchstart', startGame);
 
-// Jump on click or touch
-window.onclick = () => flight = jump;
-canvas.addEventListener('touchstart', () => flight = jump); // Changed back to 'touchstart'
+window.onclick = () => flight = JUMP;
+canvas.addEventListener('touchstart', () => flight = JUMP);
 
-// Update score using HTML/CSS instead of canvas
 const updateScore = () => {
   document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
   document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
 }
 
-// Update scores regularly to reflect changes
+setup();
+img.onload = render;
 setInterval(updateScore, 100);
