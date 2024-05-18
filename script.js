@@ -1,14 +1,15 @@
+// script.js
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
-img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png"; // Replace with your optimized image
+img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 0.5;
-const speed = 4;
+const gravity = 0.5;  // Adjusted gravity
+const speed = 4;      // Adjusted speed
 const size = [51, 36];
-const jump = -10;
+const jump = -10;      // Adjusted jump power
 const cTenth = (canvas.width / 10);
 
 let index = 0,
@@ -17,8 +18,6 @@ let index = 0,
     flyHeight, 
     currentScore, 
     pipes;
-
-const animationFrames = 3; // Assuming 3 flapping frames in the sprite sheet
 
 // Pipe settings
 const pipeWidth = 78;
@@ -31,36 +30,30 @@ const setup = () => {
 
   flyHeight = (canvas.height / 2) - (size[1] / 2);
 
-  pipes = Array(3).fill().map((_, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
+  pipes = Array(3).fill().map((a, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
 }
 
 const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;
-  const downAngle = 100 * Math.PI / 180;
+  const upAngle = 30 * Math.PI / 180;  // 20 degrees in radians for a slower upward rotation
+  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians for a steeper downward rotation
 
   if (flight < 0) {
+    // Bird is going up, rotate slower
     return Math.max(-upAngle, flight / 10);
   } else {
+    // Bird is going down, rotate faster and steeper
     return Math.min(downAngle, flight / 20);
   }
 }
 
-// Consider using an off-screen canvas for background optimization (commented out)
-// const offscreenCanvas = document.createElement('canvas');
-// offscreenCanvas.width = canvas.width;
-// offscreenCanvas.height = canvas.height;
-// const offscreenCtx = offscreenCanvas.getContext('2d');
-
 const render = () => {
   index++;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw pre-rendered background (if using off-screen canvas)
-  // ctx.drawImage(offscreenCanvas, 0, 0);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 
   if (gamePlaying) {
-    pipes.forEach(pipe => {
+    pipes.map(pipe => {
       pipe[0] -= speed;
 
       ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
@@ -82,22 +75,16 @@ const render = () => {
       }
     });
 
-    const birdFrame = Math.floor(index % animationFrames) * (size[1] / 2); // Assuming separate up/down frames (half size)
-const isUpwardFlap = index % 2 === 0; // Check for even/odd index for up/down animation
-
-ctx.drawImage(img, 432, isUpwardFlap ? birdFrame : birdFrame + (size[1] / 2), ...size, -size[0] / 2, -size[1] / 2, ...size);
-
-// ... (rest of your rendering logic)
-
     ctx.save();
     ctx.translate(cTenth + size[0] / 2, flyHeight + size[1] / 2);
     ctx.rotate(getBirdAngle(flight));
-    ctx.drawImage(img, 432, birdFrame, ...size, -size[0] / 2, -size[1] / 2, ...size);
+    ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, -size[0] / 2, -size[1] / 2, ...size);
     ctx.restore();
 
     flight += gravity;
     flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
 
+    // Check if bird hits the ground
     if (flyHeight >= canvas.height - size[1]) {
       gamePlaying = false;
       setup();
@@ -105,9 +92,9 @@ ctx.drawImage(img, 432, isUpwardFlap ? birdFrame : birdFrame + (size[1] / 2), ..
   } else {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
 
-    ctx.font = "bold 30px courier";
     ctx.fillText(`Best score : ${bestScore}`, 85, 245);
     ctx.fillText('Click or Tap to play', 90, 535);
+    ctx.font = "bold 30px courier";
   }
 
   document.getElementById('bestScore').innerHTML = `Best : ${bestScore}`;
@@ -119,20 +106,18 @@ ctx.drawImage(img, 432, isUpwardFlap ? birdFrame : birdFrame + (size[1] / 2), ..
 setup();
 img.onload = render;
 
-const startGame = () => {
+// Event listeners for both click and touch
+document.addEventListener('click', () => {
   if (!gamePlaying) {
     gamePlaying = true;
   }
-}
-
-const jumpBird = () => {
-  flight = jump;
-}
-
-// Event listeners for both click and touch
-document.addEventListener('click', startGame);
-canvas.addEventListener('touchstart', startGame);
+});
+canvas.addEventListener('touchstart', () => {
+  if (!gamePlaying) {
+    gamePlaying = true;
+  }
+});
 
 // Jump on click or touch
-window.addEventListener('click', jumpBird);
-canvas.addEventListener('touchstart', jumpBird);
+window.onclick = () => flight = jump;
+canvas.addEventListener('touchstart', () => flight = jump);
