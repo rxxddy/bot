@@ -7,7 +7,7 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 // General settings
 const GRAVITY = 0.67;
 const BIRD_SIZE = [51, 36];
-const JUMP = -8;
+const JUMP = -10;
 const CANVAS_TENTH = (canvas.width / 10);
 const PIPE_WIDTH = 78;
 const PIPE_GAP = 220;
