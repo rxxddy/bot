@@ -6,30 +6,25 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-let gravity = 0.5;
-let speed = 4;
+const gravity = 0.5;
 const size = [51, 36];
-let jump = -10;
+const jump = -10;
 const cTenth = (canvas.width / 10);
 
-// Adjust settings for mobile
-if (/Mobi|Android/i.test(navigator.userAgent)) {
-  gravity = 0.8;
-  speed = 6;
-  jump = -12;
-}
-
 let index = 0,
-    bestScore = 0, 
-    flight, 
-    flyHeight, 
-    currentScore, 
+    bestScore = 0,
+    flight,
+    flyHeight,
+    currentScore,
     pipes;
 
-// Pipe settings
 const pipeWidth = 78;
 const pipeGap = 220;
 const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
+
+// Detect if the user is on a mobile device
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const speed = isMobile ? 8 : 4; // Increased speed on mobile
 
 const setup = () => {
   currentScore = 0;
@@ -39,8 +34,9 @@ const setup = () => {
 }
 
 const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;
-  const downAngle = 100 * Math.PI / 180;
+  const upAngle = 30 * Math.PI / 180;  // 30 degrees in radians
+  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians
+
   if (flight < 0) {
     return Math.max(-upAngle, flight / 10);
   } else {
@@ -49,9 +45,9 @@ const getBirdAngle = (flight) => {
 }
 
 const render = () => {
-  index++;
-  
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  index++;
 
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
@@ -70,8 +66,8 @@ const render = () => {
       }
 
       if ([
-        pipe[0] <= cTenth + size[0], 
-        pipe[0] + pipeWidth >= cTenth, 
+        pipe[0] <= cTenth + size[0],
+        pipe[0] + pipeWidth >= cTenth,
         pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1]
       ].every(elem => elem)) {
         gamePlaying = false;
@@ -112,9 +108,10 @@ img.onload = render;
 const startGame = () => {
   if (!gamePlaying) {
     gamePlaying = true;
+    flight = jump;
   }
-  flight = jump;
 };
 
+// Combined event listeners for click and touch
 document.addEventListener('click', startGame);
 canvas.addEventListener('touchstart', startGame);
