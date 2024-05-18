@@ -39,7 +39,7 @@ const getBirdAngle = (flight) => {
   const downAngle = 100 * Math.PI / 180; // 100 degrees in radians
 
   if (flight < 0) {
-    return Math.max(-upAngle, flight / 10); // Adjusted flight angle for smoother rotation
+    return Math.max(-upAngle, flight / 15); // Adjusted flight angle for smoother rotation
   } else {
     return Math.min(downAngle, flight / 20);
   }
