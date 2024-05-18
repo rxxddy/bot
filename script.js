@@ -25,7 +25,7 @@ const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) 
 
 // Detect if the user is on a mobile device
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const speed = isMobile ? 8 : 4; // Increased speed on mobile
+const speed = isMobile ? 14 : 4; // Increased speed on mobile
 
 const setup = () => {
   currentScore = 0;
