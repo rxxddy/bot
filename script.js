@@ -117,17 +117,18 @@ const startGame = () => {
   }
 };
 
-// Combined event listeners for click and touch
 document.addEventListener('click', startGame);
-canvas.addEventListener('touchend', startGame);
+canvas.addEventListener('touchstart', startGame); // Changed back to 'touchstart'
+
+// Jump on click or touch
 window.onclick = () => flight = jump;
-canvas.addEventListener('touchend', () => flight = jump);
+canvas.addEventListener('touchstart', () => flight = jump); // Changed back to 'touchstart'
 
 // Update score using HTML/CSS instead of canvas
 const updateScore = () => {
-    document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
-    document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
-  }
+  document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
+  document.getElementById('currentScore').textContent = `Current: ${currentScore}`;
+}
 
 // Update scores regularly to reflect changes
 setInterval(updateScore, 100);
