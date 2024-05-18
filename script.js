@@ -18,13 +18,14 @@ let index = 0,
     currentScore,
     pipes;
 
+// Pipe settings
 const pipeWidth = 78;
 const pipeGap = 220;
 const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
 
 // Detect if the user is on a mobile device
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const speed = isMobile ? 30 : 4; // Increased speed on mobile
+const speed = isMobile ? 8 : 4; // Increased speed on mobile
 
 const setup = () => {
   currentScore = 0;
@@ -44,13 +45,23 @@ const getBirdAngle = (flight) => {
   }
 }
 
-const render = () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Offscreen canvas for background
+const offCanvas = document.createElement('canvas');
+offCanvas.width = canvas.width;
+offCanvas.height = canvas.height;
+const offCtx = offCanvas.getContext('2d');
 
+const renderBackground = () => {
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
+  offCtx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
+}
+
+const render = () => {
   index++;
 
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
+  // Draw background from offscreen canvas
+  renderBackground();
+  ctx.drawImage(offCanvas, 0, 0);
 
   if (gamePlaying) {
     pipes.forEach(pipe => {
