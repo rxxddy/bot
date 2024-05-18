@@ -6,10 +6,10 @@ img.src = "https://i.ibb.co/Q9yv5Jk/flappy-bird-set.png";
 
 // General settings
 let gamePlaying = false;
-const gravity = 0.5;  // Adjusted gravity
-const speed = 4;      // Adjusted speed
+const gravity = 0.5;
+const speed = 4;
 const size = [51, 36];
-const jump = -10;      // Adjusted jump power
+const jump = -10;
 const cTenth = (canvas.width / 10);
 
 let index = 0,
@@ -27,33 +27,29 @@ const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) 
 const setup = () => {
   currentScore = 0;
   flight = jump;
-
   flyHeight = (canvas.height / 2) - (size[1] / 2);
-
   pipes = Array(3).fill().map((a, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
 }
 
 const getBirdAngle = (flight) => {
-  const upAngle = 30 * Math.PI / 180;  // 20 degrees in radians for a slower upward rotation
-  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians for a steeper downward rotation
+  const upAngle = 30 * Math.PI / 180;  // 30 degrees in radians
+  const downAngle = 100 * Math.PI / 180; // 100 degrees in radians
 
   if (flight < 0) {
-    // Bird is going up, rotate slower
     return Math.max(-upAngle, flight / 10);
   } else {
-    // Bird is going down, rotate faster and steeper
     return Math.min(downAngle, flight / 20);
   }
 }
 
-const render = () => {
+const render = (time) => {
   index++;
 
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 
   if (gamePlaying) {
-    pipes.map(pipe => {
+    pipes.forEach(pipe => {
       pipe[0] -= speed;
 
       ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
@@ -84,7 +80,6 @@ const render = () => {
     flight += gravity;
     flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
 
-    // Check if bird hits the ground
     if (flyHeight >= canvas.height - size[1]) {
       gamePlaying = false;
       setup();
@@ -106,18 +101,13 @@ const render = () => {
 setup();
 img.onload = render;
 
-// Event listeners for both click and touch
-document.addEventListener('click', () => {
+// Combined event listeners for click and touch
+const startGame = () => {
   if (!gamePlaying) {
     gamePlaying = true;
   }
-});
-canvas.addEventListener('touchstart', () => {
-  if (!gamePlaying) {
-    gamePlaying = true;
-  }
-});
+  flight = jump;
+};
 
-// Jump on click or touch
-window.onclick = () => flight = jump;
-canvas.addEventListener('touchstart', () => flight = jump);
+document.addEventListener('click', startGame);
+canvas.addEventListener('touchstart', startGame);
